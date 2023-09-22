@@ -60,7 +60,8 @@ const fitness = (params) => {
     return getRootMeanSquare(yData);
 }
 
-// console.log(fitness([-0.2,8,4.1]).toFixed(5));
+console.log(fitness([-0.2, 20, 10]).toFixed(5));
+console.log(fitness([-0, 20, 10]).toFixed(5));
 
 const createInitialPopulation = (populationSize, genomeLength) => {
     const population = [];
@@ -80,10 +81,16 @@ const createInitialPopulation = (populationSize, genomeLength) => {
     return population;
 }
 
-const reduction = (population, surviveSize) => {
+const selection = (population, surviveSize) => {
     const sorted = population.sort((a, b) => fitness(a) - fitness(b));
 
     return sorted.slice(0, surviveSize);
+}
+
+const reduction = (population, surviveSize, eliteSize) => {
+  for (let i = eliteSize; i < population.length - surviveSize; i++) {
+    population.splice(Math.floor(Math.random() * population.length), 1);
+  }
 }
 
 const crossover = (genomeA, genomeB) => {
@@ -103,7 +110,7 @@ const mutate = (genome) => {
     genome[index] += randFloat(-1, 1);
 }
 
-const nextGeneration = (parents, mutationRate) => {
+const nextGeneration = (parents, mutationRate, eliteSize) => {
     const newPopulation = [];
 
     for (let j = 0; j < parents.length - 3; j++) {
@@ -116,7 +123,7 @@ const nextGeneration = (parents, mutationRate) => {
 
         const child = crossover(parentA, parentB);
 
-        if (Math.random() < mutationRate) {
+        if (Math.random() < mutationRate && j > eliteSize) {
             mutate(child);
         }
 
@@ -134,17 +141,18 @@ const run = (maxGenerations, populationSize, mutationRate) => {
 
         // will remove worst 20% amount of parents
         const parentSurvivePercent = 0.8;
-        const parents = reduction(population, population.length * parentSurvivePercent);
-  
+
+        const parents = selection(population, population.length * parentSurvivePercent);
+        const eliteSize = 0.2 * population.length;
         // will create children from 80% parents 
 
         const familyPopulation = [
             ...parents, 
-            ...nextGeneration(parents, mutationRate)
+            ...nextGeneration(parents, mutationRate, eliteSize)
         ];
 
         // will remove keep same population size
-        population = reduction(familyPopulation, populationSize);
+        reduction(eliteSize, familyPopulation, populationSize);
 
         console.log(`Generation: ${i} | Fitness: ${fitness(parents[0])} | result: ${familyPopulation[99]}`);
 
@@ -156,7 +164,7 @@ const run = (maxGenerations, populationSize, mutationRate) => {
 }
 
 run(
-    maxGenerations = 100,
+    maxGenerations = 1000,
     populationSize = 100,
     mutationRate = 0.9
 )
