@@ -1,3 +1,5 @@
+
+
 const getSine = (t) => (amplitude, frequency, phase) => {
     return amplitude * Math.sin(Math.PI/180 * frequency * t + phase);
 }
@@ -46,9 +48,95 @@ const getRootMeanSquare = (yData) => {
 }
 
 
+
+let optimumPath, x, yBlack;
+
+if (typeof window !== 'undefined') {
+    const xData = dataX;
+    const yRedData = dataYWithoutNoise;
+    const yData = noisedDataY;
+
+
+    // Declare the chart dimensions and margins.
+    const width = 1080;
+    const height = 500;
+    const marginTop = 60;
+    const marginRight = 20;
+    const marginBottom = 40;
+    const marginLeft = 160;
+
+    // Declare the x (horizontal position) scale.
+    x = d3.scaleLinear()
+        .domain([0, d3.max(xData)])
+        .range([marginLeft, width - marginRight]);
+
+
+    // Declare the y (vertical position) scale.
+    const y = d3.scaleLinear()
+        .domain([-d3.max(yData), d3.max(yData)])
+        .range([height - marginBottom, marginTop]);
+
+    const yRed = d3.scaleLinear()
+        .domain([-d3.max(yRedData), d3.max(yRedData)])
+        .range([height - marginBottom, marginTop]);
+
+    yBlack = d3.scaleLinear()
+        .domain([-d3.max(yData), d3.max(yData)])
+        .range([height - marginBottom, marginTop]);
+
+    // Create the SVG container.
+    const svg = d3.create("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Add the x-axis.
+    svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(x));
+
+    // Add the y-axis.
+    svg.append("g")
+        .attr("transform", `translate(${marginLeft},0)`)
+        .call(d3.axisLeft(y));
+
+
+
+    svg.datum(xData)
+        .append("path")
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+            .x((d) => x(d))
+            .y((d, i) => y(yData[i]))
+        );
+
+    svg.datum(xData)
+        .append("path")
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 3)
+        .attr("d", d3.line()
+            .x((d) => x(d))
+            .y((d, i) => yRed(yRedData[i]))
+        );
+
+   optimumPath = svg
+            .append("path")
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1.5)
+
+
+    // Append the SVG element.
+    container.append(
+        svg.node()
+    );
+}
+
 // GA
 
-const fitness = (params) => {
+const applySineToDataX = (params) => {
     const [amplitude, frequency, phase] = params;
 
     const yData = noisedDataY.map((ny, t) => {
@@ -57,11 +145,22 @@ const fitness = (params) => {
         return ny + sine(amplitude, frequency, phase);
     });
 
-    return getRootMeanSquare(yData);
+    return yData;
 }
 
-console.log(fitness([-0.2, 20, 10]).toFixed(5));
-console.log(fitness([-0, 20, 10]).toFixed(5));
+const fitness = (params) => {
+    const dataY = applySineToDataX(params)
+
+    return getDistancesSum(
+        dataY
+    ).toFixed(5);
+}
+
+console.log(fitness([-0.5, 20, 10]));
+
+console.log(fitness([0, 10, 4]));
+console.log(fitness([-0.4, 10, 4]));
+
 
 const createInitialPopulation = (populationSize, genomeLength) => {
     const population = [];
@@ -113,8 +212,8 @@ const mutate = (genome) => {
 const nextGeneration = (parents, mutationRate, eliteSize) => {
     const newPopulation = [];
 
-    for (let j = 0; j < parents.length - 3; j++) {
-        const parentA = parents[Math.floor(Math.random() * parents.length)];
+    for (let j = 0; j < parents.length - 1; j++) {
+        const parentA = parents[j];
         const parentB = parents[Math.floor(Math.random() * parents.length)];
         // const parentC = parents[Math.floor(Math.random() * parents.length)];
         // const parentD = parents[Math.floor(Math.random() * parents.length)];
@@ -134,7 +233,7 @@ const nextGeneration = (parents, mutationRate, eliteSize) => {
 }
 
 
-const run = (maxGenerations, populationSize, mutationRate) => {
+const run = (maxGenerations, populationSize, mutationRate, elite) => {
     let population = createInitialPopulation(populationSize, 3);
 
     for (let i = 0; i < maxGenerations; i++) {
@@ -143,7 +242,7 @@ const run = (maxGenerations, populationSize, mutationRate) => {
         const parentSurvivePercent = 0.8;
 
         const parents = selection(population, population.length * parentSurvivePercent);
-        const eliteSize = 0.2 * population.length;
+        const eliteSize = elite * population.length;
         // will create children from 80% parents 
 
         const familyPopulation = [
@@ -154,17 +253,34 @@ const run = (maxGenerations, populationSize, mutationRate) => {
         // will remove keep same population size
         reduction(eliteSize, familyPopulation, populationSize);
 
-        console.log(`Generation: ${i} | Fitness: ${fitness(parents[0])} | result: ${familyPopulation[99]}`);
+        console.log(`Generation: ${i} | Fitness: ${fitness(parents[0])} | result: ${familyPopulation[0]}`);
 
         if (fitness(parents[0]) === 0) {
             console.log(`Best genome: ${parents[0]}, result: ${equation(...parents[0])}`);
             return;
         }
     }
+
+  if (typeof window !== 'undefined') {
+    const xy = dataX.map((x, i) => {
+        return [x, applySineToDataX(population[0])[i]];
+    });
+
+    // replace data in d3 graph
+    optimumPath.data([xy])
+        .attr("d", d3.line()
+            .x((d) => x(d[0]))
+            .y((d) => yBlack(d[1]))
+        
+    );
+  }
 }
 
-run(
-    maxGenerations = 1000,
-    populationSize = 100,
-    mutationRate = 0.9
-)
+
+
+// run(
+//     maxGenerations = 200,
+//     populationSize = 100,
+//     mutationRate = 1,
+//     elite = 0.2
+// )
