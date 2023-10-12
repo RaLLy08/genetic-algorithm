@@ -92,9 +92,10 @@ const nextGeneration = (parents, mutationRate) => {
 
     return newPopulation;
 }
-
+let isRunning = false;
 const run = async (maxGenerations, populationSize, mutationRate) => {
     let population = createInitialPopulation(populationSize, 6);
+    isRunning = true;
 
     for (let i = 0; i < maxGenerations; i++) {
         await new Promise((resolve) => setTimeout(resolve, 10));
@@ -120,9 +121,11 @@ const run = async (maxGenerations, populationSize, mutationRate) => {
             
             console.log(`Best genome: ${parents[0]}`);
 
-            return;
+            break;
         }
     }
+
+    isRunning = false;
 }
 
 
@@ -131,3 +134,18 @@ run(
     populationSize = 100,
     mutationRate = 0.1
 )
+
+if (typeof window !== 'undefined') {
+    document.getElementById('run').onclick = () => {
+
+        if (isRunning) {
+            return;
+        }
+
+        run(
+            maxGenerations = 1000,
+            populationSize = 100,
+            mutationRate = 0.1
+        )
+    }
+}
