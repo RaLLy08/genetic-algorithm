@@ -1,7 +1,17 @@
+const mapVals = (min, max, minFrom, maxFrom) => valFrom => {
+    const range = Math.abs(min) + Math.abs(max);
+    const rangeFrom = Math.abs(minFrom) + Math.abs(maxFrom);
+    
+    const valFromAbs = valFrom + Math.abs(minFrom);
+    const fromKoef = valFromAbs / rangeFrom;
 
+    return (range * fromKoef) + min;
+}
+
+const dataXLength = 1000;
 
 const getSine = (t) => (amplitude, frequency, phase) => {
-    return amplitude * Math.sin(Math.PI/180 * frequency * t + phase);
+    return amplitude * Math.sin(mapVals(-Math.PI, Math.PI, 0, dataXLength)(frequency * t + phase));
 }
 const randFloat = (min, max) => {
     return Math.trunc((min + (Math.random() * (max - min)) ) * 10) / 10
@@ -12,7 +22,7 @@ const equation = (t) => {
     return sine(1, 1, 10);
 }
 
-const dataX = Array.from({ length: 1000 }, (_, i) => i);
+const dataX = Array.from({ length: dataXLength }, (_, i) => i);
 const noisedDataY = dataX.map((t) => {
     const sine = getSine(t);
 
@@ -156,10 +166,10 @@ const fitness = (params) => {
     ).toFixed(5);
 }
 
-console.log(fitness([-0.5, 20, 10]));
+// console.log(fitness([-0.5, 20, 10]));
 
-console.log(fitness([0, 10, 4]));
-console.log(fitness([-0.4, 10, 4]));
+// console.log(fitness([0, 10, 4]));
+// console.log(fitness([-0.4, 10, 4]));
 
 
 const createInitialPopulation = (populationSize, genomeLength) => {
@@ -278,9 +288,9 @@ const run = (maxGenerations, populationSize, mutationRate, elite) => {
 
 
 
-// run(
-//     maxGenerations = 200,
-//     populationSize = 100,
-//     mutationRate = 1,
-//     elite = 0.2
-// )
+run(
+    maxGenerations = 1000,
+    populationSize = 10,
+    mutationRate = 0.2,
+    elite = 0
+)
