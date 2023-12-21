@@ -1,39 +1,36 @@
-const mapVals = (min, max, minFrom, maxFrom) => valFrom => {
-    const range = Math.abs(min) + Math.abs(max);
-    const rangeFrom = Math.abs(minFrom) + Math.abs(maxFrom);
-    
-    const valFromAbs = valFrom + Math.abs(minFrom);
-    const fromKoef = valFromAbs / rangeFrom;
-
-    return (range * fromKoef) + min;
+const mapRange = (toMin, toMax, fromMin, fromMax) => value => {
+    return (value - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin;
 }
 
 const dataXLength = 1000;
 
 const getSine = (t) => (amplitude, frequency, phase) => {
-    return amplitude * Math.sin(mapVals(-Math.PI, Math.PI, 0, dataXLength)(frequency * t + phase));
+    return amplitude * Math.sin(
+            mapRange(
+                -Math.PI, Math.PI, 0, dataXLength
+            )(frequency * t + phase)
+    );
 }
+
 const randFloat = (min, max) => {
     return Math.trunc((min + (Math.random() * (max - min)) ) * 10) / 10
 }
-const equation = (t) => {
+
+const originalEquation = (t) => {
     const sine = getSine(t);
 
     return sine(1, 1, 10);
 }
 
-const dataX = Array.from({ length: dataXLength }, (_, i) => i);
-const noisedDataY = dataX.map((t) => {
-    const sine = getSine(t);
 
-    return sine(1, 1, 10) + sine(0.5, 20, 10);
-});
-const dataYWithoutNoise = dataX.map(equation);
+const dataX = Array.from({ length: dataXLength }, (_, i) => i);
+
+const dataYWithoutNoise = dataX.map(originalEquation);
 
 
 const getDistances = (yData) => {
     return yData.map((y1, i) => {
-        const y2 = equation(i);
+        const y2 = originalEquation(i);
 
         return Math.abs(y1 - y2);
     })
@@ -58,14 +55,30 @@ const getRootMeanSquare = (yData) => {
 }
 
 
+const applySineToData = (params, data) => {
+    const [amplitude, frequency, phase] = params;
+
+    return data.map((ny, t) => {
+        const sine = getSine(t);
+
+        return ny + sine(amplitude, frequency, phase) + sine(0.9, frequency, 15);
+    });
+}
+ 
+
+const noiseSineParams = [0.5, 20, 10];
+const noisedDataY = applySineToData(
+    noiseSineParams, dataYWithoutNoise
+);
+
 
 let optimumPath, x, yBlack;
 
 if (typeof window !== 'undefined') {
     const xData = dataX;
-    const yRedData = dataYWithoutNoise;
-    const yData = noisedDataY;
 
+    const yRedData = dataYWithoutNoise;
+    const yBlackData = noisedDataY;
 
     // Declare the chart dimensions and margins.
     const width = 1080;
@@ -83,15 +96,15 @@ if (typeof window !== 'undefined') {
 
     // Declare the y (vertical position) scale.
     const y = d3.scaleLinear()
-        .domain([-d3.max(yData), d3.max(yData)])
+        .domain([-d3.max(yBlackData), d3.max(yBlackData)])
         .range([height - marginBottom, marginTop]);
 
     const yRed = d3.scaleLinear()
-        .domain([-d3.max(yRedData), d3.max(yRedData)])
+        .domain([-d3.max(yBlackData), d3.max(yBlackData)])
         .range([height - marginBottom, marginTop]);
 
     yBlack = d3.scaleLinear()
-        .domain([-d3.max(yData), d3.max(yData)])
+        .domain([-d3.max(yBlackData), d3.max(yBlackData)])
         .range([height - marginBottom, marginTop]);
 
     // Create the SVG container.
@@ -109,16 +122,14 @@ if (typeof window !== 'undefined') {
         .attr("transform", `translate(${marginLeft},0)`)
         .call(d3.axisLeft(y));
 
-
-
     svg.datum(xData)
         .append("path")
         .attr("fill", "none")
-        .attr("stroke", "steelblue")
+        .attr("stroke", "blue")
         .attr("stroke-width", 1.5)
         .attr("d", d3.line()
             .x((d) => x(d))
-            .y((d, i) => y(yData[i]))
+            .y((d, i) => y(yBlackData[i]))
         );
 
     svg.datum(xData)
@@ -146,30 +157,23 @@ if (typeof window !== 'undefined') {
 
 // GA
 
-const applySineToDataX = (params) => {
-    const [amplitude, frequency, phase] = params;
-
-    const yData = noisedDataY.map((ny, t) => {
-        const sine = getSine(t);
-
-        return ny + sine(amplitude, frequency, phase);
-    });
-
-    return yData;
-}
-
 const fitness = (params) => {
-    const dataY = applySineToDataX(params)
+    const dataY = applySineToData(params, noisedDataY)
 
     return getDistancesSum(
         dataY
     ).toFixed(5);
 }
 
-// console.log(fitness([-0.5, 20, 10]));
+// console.log(fitness([-0.1, 20, 1]));
+// console.log(fitness([-0.1, 20, 3]));
+// console.log(fitness([-0.1, 20, 4]));
+// console.log(fitness([-0.4, 20, 4]));
 
 // console.log(fitness([0, 10, 4]));
 // console.log(fitness([-0.4, 10, 4]));
+console.log(fitness([-0.6,20,9.8]))
+console.log(fitness([-0.6,20,10]))
 
 
 const createInitialPopulation = (populationSize, genomeLength) => {
@@ -180,7 +184,7 @@ const createInitialPopulation = (populationSize, genomeLength) => {
 
         for (let j = 0; j < genomeLength; j++) {
             genome.push(
-                randFloat(-10, 10)
+                randFloat(-40, 40)
             );
         }
 
@@ -215,6 +219,11 @@ const crossover = (genomeA, genomeB) => {
 
 const mutate = (genome) => {
     const index = Math.floor(Math.random() * genome.length);
+    // let index = 0;
+
+    // if (Math.random() < 0.5) {
+    //     index = 2;
+    // }
 
     genome[index] += randFloat(-1, 1);
 }
@@ -243,37 +252,21 @@ const nextGeneration = (parents, mutationRate, eliteSize) => {
 }
 
 
-const run = (maxGenerations, populationSize, mutationRate, elite) => {
-    let population = createInitialPopulation(populationSize, 3);
-
-    for (let i = 0; i < maxGenerations; i++) {
-
-        // will remove worst 20% amount of parents
-        const parentSurvivePercent = 0.8;
-
-        const parents = selection(population, population.length * parentSurvivePercent);
-        const eliteSize = elite * population.length;
-        // will create children from 80% parents 
-
-        const familyPopulation = [
-            ...parents, 
-            ...nextGeneration(parents, mutationRate, eliteSize)
-        ];
-
-        // will remove keep same population size
-        reduction(eliteSize, familyPopulation, populationSize);
-
-        console.log(`Generation: ${i} | Fitness: ${fitness(parents[0])} | result: ${familyPopulation[0]}`);
-
-        if (fitness(parents[0]) === 0) {
-            console.log(`Best genome: ${parents[0]}, result: ${equation(...parents[0])}`);
-            return;
-        }
+const displayDenoisedWave = (bestGenome) => {
+    if (typeof window === 'undefined') {
+        return;
     }
 
-  if (typeof window !== 'undefined') {
+    const denoised = applySineToData(
+        bestGenome,
+        noisedDataY
+    );
+
     const xy = dataX.map((x, i) => {
-        return [x, applySineToDataX(population[0])[i]];
+        return [
+            x, 
+            denoised[i]
+        ];
     });
 
     // replace data in d3 graph
@@ -283,14 +276,70 @@ const run = (maxGenerations, populationSize, mutationRate, elite) => {
             .y((d) => yBlack(d[1]))
         
     );
-  }
 }
 
 
+const run = async (maxGenerations, populationSize, mutationRate, elite) => {
+    let population = createInitialPopulation(populationSize, 3);
+
+    for (let i = 0; i < maxGenerations; i++) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        displayDenoisedWave(population[0])
+
+        // will remove worst 20% amount of parents
+        const parentSurvivePercent = 0.8;
+
+        const parents = selection(population, population.length * parentSurvivePercent);
+        const eliteSize = elite * population.length;
+        // will create children from 80% parents 
+
+        const familyPopulation = [
+            ...nextGeneration(parents, mutationRate, eliteSize)
+        ];
+
+        // will remove keep same population size
+        reduction(eliteSize, familyPopulation, populationSize);
+
+        console.log(`Generation: ${i} | Fitness: ${fitness(familyPopulation[0])} | result: ${familyPopulation[0]}`);
+
+        if (fitness(parents[0]) === 0) {
+            console.log(`Best genome: ${parents[0]}, result: ${originalEquation(...parents[0])}`);
+            return;
+        }
+    }
+
+  if (typeof window !== 'undefined') {
+    // purpose to find this 
+    // const antiphase = [-0.5, 20, 10];
+    
+    // displayDenoisedWave(population[0])
+    console.log(population, population.map(fitness));
+  }
+}
 
 run(
-    maxGenerations = 1000,
-    populationSize = 10,
-    mutationRate = 0.2,
-    elite = 0
+    maxGenerations = 300,
+    populationSize = 400,
+    mutationRate = 0.3,
+    elite = 0.3
 )
+
+// const a = [
+//     fitness([-0.5, 20, -6]), // 0
+//     fitness([-0.5, 20, -3]), // 1
+//     fitness([-0.5, 20, -2]), // 2
+
+//     fitness([-0.5, 20, -1]), // 3
+//     fitness([-0.5, 20, -1.1]), // 4 better why
+
+//     fitness([-0.5, 20, 1]),
+//     fitness([-0.5, 20, 4]),
+//     fitness([-0.5, 20, 6]),
+//     fitness([-0.5, 20, 8]),
+//     fitness([-0.5, 20, 9]),
+//     fitness([-0.5, 20, 10]),
+// ]
+
+// console.log(a)
+
+
