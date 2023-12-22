@@ -1,3 +1,47 @@
+const originalSineParameters = [0.5, 5, 30]; // amplitude, frequency, phase
+const noiseSineParams = [
+    0.5 + Math.random() * 0.5,
+    5 + Math.random() * 15,
+    2 + Math.random() * 10
+];
+
+
+const views = {
+    originalSine: [
+        document.getElementById('original-A'),
+        document.getElementById('original-F'),
+        document.getElementById('original-P'),
+    ],
+    noisedSine: [
+        document.getElementById('noised-A'),
+        document.getElementById('noised-F'),
+        document.getElementById('noised-P'),
+    ],
+    targetSine: [
+        document.getElementById('target-A'),
+        document.getElementById('target-F'),
+        document.getElementById('target-P'),
+    ]
+}
+
+views.originalSine.forEach((view, i) => {
+    view.innerHTML = originalSineParameters[i];
+})
+
+views.noisedSine.forEach((view, i) => {
+    view.innerHTML = noiseSineParams[i];
+})
+
+
+
+const updateView = (amplitude, frequency, phase, generation) => {
+    document.getElementById('generation').innerHTML = generation;
+
+    views.targetSine.forEach((view, i) => {
+        view.innerHTML = [amplitude.toFixed(3), frequency.toFixed(3), phase.toFixed(3)][i];
+    })
+}
+
 const mapRange = (toMin, toMax, fromMin, fromMax) => value => {
     return (value - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin;
 }
@@ -19,7 +63,7 @@ const randFloat = (min, max) => {
 const originalEquation = (t) => {
     const sine = getSine(t);
 
-    return sine(1, 1, 10);
+    return sine(...originalSineParameters);
 }
 
 
@@ -66,7 +110,6 @@ const applySineToData = (params, data) => {
 }
  
 
-const noiseSineParams = [0.5, 20, 10];
 const noisedDataY = applySineToData(
     noiseSineParams, dataYWithoutNoise
 );
@@ -146,7 +189,7 @@ if (typeof window !== 'undefined') {
             .append("path")
             .attr("fill", "none")
             .attr("stroke", "black")
-            .attr("stroke-width", 1.5)
+            .attr("stroke-width", 3)
 
 
     // Append the SVG element.
@@ -164,17 +207,6 @@ const fitness = (params) => {
         dataY
     ).toFixed(5);
 }
-
-// console.log(fitness([-0.1, 20, 1]));
-// console.log(fitness([-0.1, 20, 3]));
-// console.log(fitness([-0.1, 20, 4]));
-// console.log(fitness([-0.4, 20, 4]));
-
-// console.log(fitness([0, 10, 4]));
-// console.log(fitness([-0.4, 10, 4]));
-console.log(fitness([-0.6,20,9.8]))
-console.log(fitness([-0.6,20,10]))
-
 
 const createInitialPopulation = (populationSize, genomeLength) => {
     const population = [];
@@ -226,7 +258,7 @@ const mutate = (genome) => {
     //     index = 2;
     // }
 
-    genome[index] += randFloat(-1, 1);
+    genome[index] += randFloat(-5, 5);
 }
 
 const nextGeneration = (parents, mutationRate, eliteSize) => {
@@ -288,7 +320,7 @@ const run = async (maxGenerations, populationSize, mutationRate, elite, parentSu
     }
 
     for (let i = 0; i < maxGenerations; i++) {
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise(resolve => setTimeout(resolve, 0));
         displayDenoisedWave(population[0])
 
         // will remove worst 20% amount of parents
@@ -312,6 +344,8 @@ const run = async (maxGenerations, populationSize, mutationRate, elite, parentSu
     
         console.log(`Generation: ${i} | Fitness: ${fitness(population[0])} | result: ${population[0]}`);
 
+        updateView(...population[0], i);
+
         if (fitness(parents[0]) === 0) {
             console.log(`Best genome: ${parents[0]}, result: ${originalEquation(...parents[0])}`);
             return;
@@ -327,10 +361,10 @@ const run = async (maxGenerations, populationSize, mutationRate, elite, parentSu
 }
 
 run(
-    maxGenerations = 500,
-    populationSize = 200,
+    maxGenerations = 1000,
+    populationSize = 140,
     mutationRate = 0.3,
-    elite = 0.2,
+    elite = 0.1,
     parentSurvivePercent=0.5
 )
 
