@@ -61,7 +61,7 @@ const applySineToData = (params, data) => {
     return data.map((ny, t) => {
         const sine = getSine(t);
 
-        return ny + sine(amplitude, frequency, phase) + sine(0.9, frequency, 15);
+        return ny + sine(amplitude, frequency, phase);
     });
 }
  
@@ -200,10 +200,11 @@ const selection = (population, surviveSize) => {
     return sorted.slice(0, surviveSize);
 }
 
-const reduction = (population, surviveSize, eliteSize) => {
-  for (let i = eliteSize; i < population.length - surviveSize; i++) {
-    population.splice(Math.floor(Math.random() * population.length), 1);
-  }
+const reduction = (population, surviveSize) => {
+//   for (let i = eliteSize; i < population.length - surviveSize; i++) {
+//     population.splice(Math.floor(Math.random() * population.length), 1);
+//   }
+    population.splice(surviveSize, population.length);
 }
 
 const crossover = (genomeA, genomeB) => {
@@ -231,7 +232,7 @@ const mutate = (genome) => {
 const nextGeneration = (parents, mutationRate, eliteSize) => {
     const newPopulation = [];
 
-    for (let j = 0; j < parents.length - 1; j++) {
+    for (let j = 0; j <= parents.length - 1; j++) {
         const parentA = parents[j];
         const parentB = parents[Math.floor(Math.random() * parents.length)];
         // const parentC = parents[Math.floor(Math.random() * parents.length)];
@@ -279,28 +280,37 @@ const displayDenoisedWave = (bestGenome) => {
 }
 
 
-const run = async (maxGenerations, populationSize, mutationRate, elite) => {
+const run = async (maxGenerations, populationSize, mutationRate, elite, parentSurvivePercent) => {
     let population = createInitialPopulation(populationSize, 3);
 
+    if (parentSurvivePercent < 0.5) {
+        throw new Error('parentSurvivePercent must be more than 0.5, becuse we return 2 children from 2 parents');
+    }
+
     for (let i = 0; i < maxGenerations; i++) {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 10));
         displayDenoisedWave(population[0])
 
         // will remove worst 20% amount of parents
-        const parentSurvivePercent = 0.8;
 
         const parents = selection(population, population.length * parentSurvivePercent);
-        const eliteSize = elite * population.length;
-        // will create children from 80% parents 
 
-        const familyPopulation = [
-            ...nextGeneration(parents, mutationRate, eliteSize)
+        console.log(parents.length, 'selected parents')
+        const eliteSize = elite * population.length;
+
+        // will create children from parentSurvivePercent% parents 
+        // dont mutate elite
+
+        const newGeneration = nextGeneration(parents, mutationRate, eliteSize);
+
+        population = [
+            ...parents,
+            ...newGeneration
         ];
 
-        // will remove keep same population size
-        reduction(eliteSize, familyPopulation, populationSize);
-
-        console.log(`Generation: ${i} | Fitness: ${fitness(familyPopulation[0])} | result: ${familyPopulation[0]}`);
+        reduction(population, populationSize, eliteSize);
+    
+        console.log(`Generation: ${i} | Fitness: ${fitness(population[0])} | result: ${population[0]}`);
 
         if (fitness(parents[0]) === 0) {
             console.log(`Best genome: ${parents[0]}, result: ${originalEquation(...parents[0])}`);
@@ -311,17 +321,17 @@ const run = async (maxGenerations, populationSize, mutationRate, elite) => {
   if (typeof window !== 'undefined') {
     // purpose to find this 
     // const antiphase = [-0.5, 20, 10];
-    
-    // displayDenoisedWave(population[0])
+    displayDenoisedWave(population[0])
     console.log(population, population.map(fitness));
   }
 }
 
 run(
-    maxGenerations = 300,
-    populationSize = 400,
+    maxGenerations = 500,
+    populationSize = 200,
     mutationRate = 0.3,
-    elite = 0.3
+    elite = 0.2,
+    parentSurvivePercent=0.5
 )
 
 // const a = [
