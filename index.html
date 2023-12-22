@@ -24,7 +24,6 @@
         overflow: hidden;
         font-family: monospace;
         font-size: 0.3em;
-        margin: 10px;
         text-align: center;
       }
 
@@ -39,31 +38,45 @@
       }
 
       .original {
-        color: blue;
+        color: red;
       }
 
       .noised {
         color: blue;
       }
+
+      button {
+        font-size: 0.5em;
+      }
+
+      label {
+        font-size: 0.4em;
+      }
+      a {
+        font-size: 0.5em;
+        position: fixed;
+      }
     </style>
 </head>
 <body>
 <a href="ga.html">#Genetic Algorithm Equation</a>
-<div id="container"></div>
 <div class="description">
   Removing Noised Signal using Genetic Algorithm
 </div>
-
+<div id="container"></div>
 <div style="text-align: center;">
-    Generation: <span id="generation">0</span>
+ Generation: <span id="generation">0</span>  
+  <button id="restart">
+  Restart
+</button> 
+</div>
+<div style="text-align: center; font-size: 0.6em;">
+  Best Fitness: <span id="best-fitness">?</span>
 </div>
 
 <div>
-  <div class="labels">
-    Original + Noise + Denoised
-  </div>
   <div class="sines">
-      <span class="original">
+      <span class="noised">
         <span id="original-A">
         </span>
           * sin(
@@ -93,6 +106,9 @@
         </span>
 
   </div> 
+  <div class="labels">
+    <span class="noised"> Original + Noise</span> - Denoised = <span class="original">Original</span>
+  </div>
 </div>
 
 </body>
