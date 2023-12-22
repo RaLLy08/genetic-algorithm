@@ -3,121 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="ga.js" defer></script>
+    <title>Removing Noise</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="gasin.js" defer></script>
     <style type="text/css">
       body {
         height: 100vh;
-        font-size: 3vw;
+        font-size: 4vw;
         padding: 0;
         margin: 0;
       }
-      
+      .sines {
+        display: inline-block;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        overflow: hidden;
+        font-family: monospace;
+        font-size: 0.3em;
+        margin: 10px;
+        text-align: center;
+      }
+
       .description {
-        font-size: 1em;
+        font-size: 0.5em;
         text-align: center;
       }
       
+      .labels {
+        font-size: 0.5em;
+        text-align: center; 
+      }
+
+      .original {
+        color: blue;
+      }
+
+      .noised {
+        color: blue;
+      }
     </style>
 </head>
 <body>
-    <a href="gasin.html">#Genetic Algorithm Sin</a>
-    <div class="description">
-      Finding the arguments of the equation:
-    </div>
-    <div style="text-align: center;">
-        Generation: <span id="generation">0</span>
-    </div>
-    <p style="text-align: center;">
-        Equation:
-        <math display="block">
-          <mfrac>
-            <msup>
-              <mi>a</mi>
-              <mn>2</mn>
-            </msup>
-            <mn>b</mn>
-          </mfrac>
-          <mfrac>
-              <mo>+</mo>
-          </mfrac>
-          <mfrac>
-            <msup><mi>c</mi><mn>2</mn></msup>
-          </mfrac>
-          <mfrac>
-            <mo>-</mo>
-            </mfrac>
-            <mfrac>
-                <mo>d</mo>
-                <mo>2</mo>
-          </mfrac>
-          <mfrac>
-            <mo>-</mo>
-          </mfrac>
-          <mfrac>
-            <mo>e</mo>
-            <mo>f</mo>
-          </mfrac>
-          <mfrac>
-            <mo>-</mo>
-          </mfrac>
-          <mfrac>
-            <msup><mi>f</mi><mn>2</mn></msup>
-          </mfrac>
-          <mfrac>
-                <mo>=</mo>
-          </mfrac>
-          <mfrac>
-            <mo>5000</mo>
-          </mfrac>
-        </math>
-      </p>
-      <p style="text-align: center;">
-        Best Fitness:
-        <math display="block">
-          <mfrac>
-            <msup>
-              <mi id="a">a</mi>
-              <mn>2</mn>
-            </msup>
-            <mn id="b">b</mn>
-          </mfrac>
-          <mfrac>
-              <mo>+</mo>
-          </mfrac>
-          <mfrac>
-            <msup><mi id="c">c</mi><mn>2</mn></msup>
-          </mfrac>
-          <mfrac>
-            <mo>-</mo>
-            </mfrac>
-            <mfrac>
-                <mo id="d">d</mo>
-                <mo>2</mo>
-          </mfrac>
-          <mfrac>
-            <mo>-</mo>
-          </mfrac>
-          <mfrac>
-            <mo id="e">e</mo>
-            <mo id="f">f</mo>
-          </mfrac>
-          <mfrac>
-            <mo>-</mo>
-          </mfrac>
-          <mfrac>
-            <msup><mi id="f2">f</mi><mn>2</mn></msup>
-          </mfrac>
-          <mfrac>
-                <mo>=</mo>
-          </mfrac>
-          <mfrac>
-            <mo id="result">?</mo>
-          </mfrac>
-        </math>
-      </p>
-      <div style="text-align:center">
-        <button id="run">Run again</button> 
-      </div>
+<a href="ga.html">#Genetic Algorithm Equation</a>
+<div id="container"></div>
+<div class="description">
+  Removing Noised Signal using Genetic Algorithm
+</div>
+
+<div style="text-align: center;">
+    Generation: <span id="generation">0</span>
+</div>
+
+<div>
+  <div class="labels">
+    Original + Noise + Denoised
+  </div>
+  <div class="sines">
+      <span class="original">
+        <span id="original-A">
+        </span>
+          * sin(
+            <span id="original-F">
+            </span>  
+            * t + <span id="original-P">
+            </span> 
+          ) 
+      </span>
+
+      <span class="noised">
+        + <span id="noised-A"> </span>
+       * sin(
+        <span id="noised-F">
+        </span>  
+        * t + <span id="noised-P">
+        </span>)
+      </span>
+
+        <span class="targed">
+          + <span id="target-A"> </span>
+          * sin(
+            <span id="target-F">
+            </span>  
+            * t + <span id="target-P">
+            </span>)
+        </span>
+
+  </div> 
+</div>
+
 </body>
 </html>

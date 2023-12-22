@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="ga.js" defer></script>
+    <style type="text/css">
+      body {
+        height: 100vh;
+        font-size: 3vw;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .description {
+        font-size: 1em;
+        text-align: center;
+      }
+      
+    </style>
+</head>
+<body>
+    <a href="/">#Genetic Algorithm Sin</a>
+    <div class="description">
+      Finding the arguments of the equation:
+    </div>
+    <div style="text-align: center;">
+        Generation: <span id="generation">0</span>
+    </div>
+    <p style="text-align: center;">
+        Equation:
+        <math display="block">
+          <mfrac>
+            <msup>
+              <mi>a</mi>
+              <mn>2</mn>
+            </msup>
+            <mn>b</mn>
+          </mfrac>
+          <mfrac>
+              <mo>+</mo>
+          </mfrac>
+          <mfrac>
+            <msup><mi>c</mi><mn>2</mn></msup>
+          </mfrac>
+          <mfrac>
+            <mo>-</mo>
+            </mfrac>
+            <mfrac>
+                <mo>d</mo>
+                <mo>2</mo>
+          </mfrac>
+          <mfrac>
+            <mo>-</mo>
+          </mfrac>
+          <mfrac>
+            <mo>e</mo>
+            <mo>f</mo>
+          </mfrac>
+          <mfrac>
+            <mo>-</mo>
+          </mfrac>
+          <mfrac>
+            <msup><mi>f</mi><mn>2</mn></msup>
+          </mfrac>
+          <mfrac>
+                <mo>=</mo>
+          </mfrac>
+          <mfrac>
+            <mo>5000</mo>
+          </mfrac>
+        </math>
+      </p>
+      <p style="text-align: center;">
+        Best Fitness:
+        <math display="block">
+          <mfrac>
+            <msup>
+              <mi id="a">a</mi>
+              <mn>2</mn>
+            </msup>
+            <mn id="b">b</mn>
+          </mfrac>
+          <mfrac>
+              <mo>+</mo>
+          </mfrac>
+          <mfrac>
+            <msup><mi id="c">c</mi><mn>2</mn></msup>
+          </mfrac>
+          <mfrac>
+            <mo>-</mo>
+            </mfrac>
+            <mfrac>
+                <mo id="d">d</mo>
+                <mo>2</mo>
+          </mfrac>
+          <mfrac>
+            <mo>-</mo>
+          </mfrac>
+          <mfrac>
+            <mo id="e">e</mo>
+            <mo id="f">f</mo>
+          </mfrac>
+          <mfrac>
+            <mo>-</mo>
+          </mfrac>
+          <mfrac>
+            <msup><mi id="f2">f</mi><mn>2</mn></msup>
+          </mfrac>
+          <mfrac>
+                <mo>=</mo>
+          </mfrac>
+          <mfrac>
+            <mo id="result">?</mo>
+          </mfrac>
+        </math>
+      </p>
+      <div style="text-align:center">
+        <button id="run">Run again</button> 
+      </div>
+</body>
+</html>
