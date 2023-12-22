@@ -308,7 +308,7 @@ const run = async (maxGenerations, populationSize, mutationRate, elite, parentSu
             ...newGeneration
         ];
 
-        reduction(population, populationSize, eliteSize);
+        reduction(population, populationSize);
     
         console.log(`Generation: ${i} | Fitness: ${fitness(population[0])} | result: ${population[0]}`);
 

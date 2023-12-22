@@ -68,18 +68,23 @@ const createInitialPopulation = (populationSize, genomeLength) => {
     return population;
 }
 
-const reduction = (population, surviveSize) => {
+const selection = (population, surviveSize) => {
     const sorted = population.sort((a, b) => fitness(a) - fitness(b));
 
     return sorted.slice(0, surviveSize);
 }
+
+const reduction = (population, surviveSize) => {
+    population.splice(surviveSize, population.length);
+}
+
 
 const nextGeneration = (parents, mutationRate) => {
     const newPopulation = [];
 
     for (let j = 0; j < parents.length - 1; j++) {
         const parentA = parents[j];
-        const parentB = parents[1 + j];
+        const parentB = parents[j + 1];
 
         const child = crossover(parentA, parentB, parentA.length);
 
@@ -92,34 +97,40 @@ const nextGeneration = (parents, mutationRate) => {
 
     return newPopulation;
 }
+
 let isRunning = false;
-const run = async (maxGenerations, populationSize, mutationRate) => {
+
+const run = async (maxGenerations, populationSize, mutationRate, parentSurvivePercent) => {
     let population = createInitialPopulation(populationSize, 6);
     isRunning = true;
+
+    if (parentSurvivePercent < 0.5) {
+        throw new Error('parentSurvivePercent must be more than 0.5, becuse we return 2 children from 2 parents');
+    }
 
     for (let i = 0; i < maxGenerations; i++) {
         await new Promise((resolve) => setTimeout(resolve, 10));
         // will remove worst 20% amount of parents
-        const parentSurvivePercent = 0.8;
-        const parents = reduction(population, population.length * parentSurvivePercent);
-        
-        // will create children from 80% parents 
 
-        const familyPopulation = [
+        const parents = selection(population, population.length * parentSurvivePercent);
+        // will create children from 80% parents 
+        
+        const newGeneration = nextGeneration(parents, mutationRate)
+
+        population = [
             ...parents, 
-            ...nextGeneration(parents, mutationRate)
+            ...newGeneration
         ];
 
         // will remove keep same population size
-        population = reduction(familyPopulation, populationSize);
+        reduction(population, populationSize);
 
-        console.log(`Generation: ${i} | Fitness: ${fitness(parents[0])} result: ${equation(...parents[0])}`);
+        console.log(`Generation: ${i} | Fitness: ${fitness(parents[0])} result: ${equation(...population[0])}`);
 
-        updateView(...parents[0], equation(...parents[0]), i + 1);
+        updateView(...population[0], equation(...population[0]), i + 1);
 
-        if (fitness(parents[0]) === 0) {
-            
-            console.log(`Best genome: ${parents[0]}`);
+        if (fitness(population[0]) === 0) {
+            console.log(`Best genome: ${population[0]}`);
 
             break;
         }
@@ -131,8 +142,9 @@ const run = async (maxGenerations, populationSize, mutationRate) => {
 
 run(
     maxGenerations = 1000,
-    populationSize = 100,
-    mutationRate = 0.1
+    populationSize = 200,
+    mutationRate = 0.3,
+    parentSurvivePercent = 0.6
 )
 
 if (typeof window !== 'undefined') {
@@ -145,7 +157,8 @@ if (typeof window !== 'undefined') {
         run(
             maxGenerations = 1000,
             populationSize = 100,
-            mutationRate = 0.1
+            mutationRate = 0.3,
+            parentSurvivePercent = 0.6
         )
     }
 }
