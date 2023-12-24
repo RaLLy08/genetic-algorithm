@@ -52,7 +52,7 @@ const mapRange = (toMin, toMax, fromMin, fromMax) => value => {
     return (value - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin;
 }
 
-const dataXLength = 800;
+const dataXLength = 500;
 
 const getSine = (t) => (amplitude, frequency, phase) => {
     return amplitude * Math.sin(
@@ -94,14 +94,14 @@ const getDistancesSum = (yData) => {
     }, 0);
 }
 
-const getRootMeanSquare = (yData) => {
+const meanSquareError = (yData) => {
     const distances = getDistances(yData);
 
     const sum = distances.reduce((acc, distance) => {
         return acc + Math.pow(distance, 2);
     }, 0);
 
-    return Math.sqrt(sum / distances.length);
+    return sum / distances.length;
 }
 
 
@@ -209,12 +209,12 @@ if (typeof window !== 'undefined') {
 const fitness = (params) => {
     const dataY = applySineToData(params, noisedDataY)
 
-    return getDistancesSum(
+    return meanSquareError(
         dataY
-    ).toFixed(5);
+    );
 }
 
-const createInitialPopulation = (populationSize, genomeLength) => {
+const createInitialPopulation = (populationSize, genomeLength, randMin, randMax) => {
     const population = [];
 
     for (let i = 0; i < populationSize; i++) {
@@ -222,7 +222,7 @@ const createInitialPopulation = (populationSize, genomeLength) => {
 
         for (let j = 0; j < genomeLength; j++) {
             genome.push(
-                randFloat(-40, 40)
+                randFloat(randMin, randMax)
             );
         }
 
@@ -232,24 +232,31 @@ const createInitialPopulation = (populationSize, genomeLength) => {
     return population;
 }
 
-const selection = (population, surviveSize, badParentSurvivePercent) => {
+function getRandomElements(arr, numElements) {
+    const shuffledArray = [...arr];
+  
+    // Fisher-Yates shuffle algorithm
+    for (let i = shuffledArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+    }
+  
+    return shuffledArray.slice(0, numElements);
+  }
+
+const selection = (population, bestSurvivePercent, populationSize) => {
     const sorted = population.sort((a, b) => fitness(a) - fitness(b));
 
-    const badSurviveSize = Math.floor(population.length * badParentSurvivePercent);
-    const lastBad = sorted.slice(-badSurviveSize);
+    const bestParentSurviveSize = Math.floor(populationSize * bestSurvivePercent);
+    const badParentSurviveSize = populationSize - bestParentSurviveSize;
 
-    const badSurvive = [];
+    const bestSurvive = sorted.slice(0, bestParentSurviveSize);
+    const restSurvive = sorted.slice(bestParentSurviveSize, population.length);
 
-    for (let i = 0; i < badSurviveSize; i++) {
-        const index = Math.floor(Math.random() * lastBad.length);
-
-        badSurvive.push(lastBad[index]);
-
-        lastBad.splice(index, 1);
-    }
+    const badSurvive = getRandomElements(restSurvive, badParentSurviveSize);
 
     return [
-        ...sorted.slice(0, surviveSize),
+        ...bestSurvive,
         ...badSurvive
     ];
 }
@@ -269,22 +276,17 @@ const crossover = (genomeA, genomeB) => {
     return child;
 }
 
-const mutate = (genome) => {
+const mutate = (genome, randMin, randMax) => {
     const index = Math.floor(Math.random() * genome.length);
-    // let index = 0;
 
-    // if (Math.random() < 0.5) {
-    //     index = 2;
-    // }
-
-    genome[index] += randFloat(-5, 5);
+    genome[index] += randFloat(randMin, randMax);
 }
 
-const nextGeneration = (parents, mutationRate, eliteSize) => {
+const nextGeneration = (parents, mutationRate, eliteSize, mutRandMin, mutRandMax) => {
     const newPopulation = [];
 
     for (let j = 0; j <= parents.length - 1; j++) {
-        const parentA = parents[Math.floor(Math.random() * parents.length)];
+        const parentA = parents[j]; // change this also test
         const parentB = parents[Math.floor(Math.random() * parents.length)];
         // const parentC = parents[Math.floor(Math.random() * parents.length)];
         // const parentD = parents[Math.floor(Math.random() * parents.length)];
@@ -292,9 +294,9 @@ const nextGeneration = (parents, mutationRate, eliteSize) => {
         // const sortedFitness = [parentA, parentB, parentC, parentD].sort((a, b) => fitness(a) - fitness(b));
 
         const child = crossover(parentA, parentB);
-
+    
         if (Math.random() < mutationRate && j > eliteSize) {
-            mutate(child);
+            mutate(child, mutRandMin, mutRandMax);
         }
 
         newPopulation.push(child);
@@ -337,18 +339,9 @@ const run = async (
     populationSize, 
     mutationRate, 
     elite, 
-    parentSurvivePercent, 
-    badParentSurvivePercent
+    bestSurvivePercent, 
 ) => {
-    let population = createInitialPopulation(populationSize, 3);
-
-    if (parentSurvivePercent + badParentSurvivePercent < 0.5) {
-        throw new Error('parent Survive Percent must be more than 0.5, becuse we return 2 children from 2 parents');
-    }
-
-    if (parentSurvivePercent + badParentSurvivePercent > 1) {
-        throw new Error('parent Survive Percent + bad Parent Survive Percent must be less than 1');
-    }
+    let population = createInitialPopulation(populationSize, 3, -40, 40);
 
     const currentRun = runCount;
 
@@ -357,28 +350,21 @@ const run = async (
             return;
         }
 
-
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve));
         displayDenoisedWave(population[0])
-
-        // will remove worst 20% amount of parents
-
-        const parents = selection(population, population.length * parentSurvivePercent, badParentSurvivePercent);
 
         const eliteSize = elite * population.length;
 
-        // will create children from parentSurvivePercent% parents 
+        // will create children from bestSurvivePercent% parents 
         // dont mutate elite
-        const newGeneration = nextGeneration(parents, mutationRate, eliteSize);
-
+        const children = nextGeneration(population, mutationRate, eliteSize, -5, 5);
 
         population = [
-            ...parents,
-            ...newGeneration
+            ...population,
+            ...children,
         ];
-        reduction(population, populationSize);
 
-        // console.log(`Generation: ${i} | Fitness: ${fitness(population[0])} | result: ${population[0]}`);
+        population = selection(population, bestSurvivePercent, populationSize);
 
         updateView(...population[0], fitness(population[0]), i);
     }
@@ -392,23 +378,21 @@ const run = async (
 }
 
 run(
-    maxGenerations = 1000,
+    maxGenerations = 200,
     populationSize = 200,
     mutationRate = 0.4,
     elite = 0.1,
-    parentSurvivePercent=0.4,
-    badParentSurvivePercent=0.3
+    bestSurvivePercent=0.4,
 )
 
 restart.onclick = () => { 
     runCount++;
 
     run(
-        maxGenerations = 1000,
-        populationSize = 160,
+        maxGenerations = 200,
+        populationSize = 200,
         mutationRate = 0.4,
         elite = 0.1,
-        parentSurvivePercent=0.4,
-        badParentSurvivePercent=0.3
+        bestSurvivePercent=0.4,
     )
 }
