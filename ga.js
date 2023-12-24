@@ -1,164 +1,139 @@
-const updateView = (a, b, c, d, e, f, result, generation) => {
-    if (typeof window === 'undefined') {
-        return;
-    }
-
-    const aEl = document.getElementById('a');
-    const bEl = document.getElementById('b');
-    const cEl = document.getElementById('c');
-    const dEl = document.getElementById('d');
-    const eEl = document.getElementById('e');
-    const [f1El, f2El] = [document.getElementById('f'), document.getElementById('f2')];
-    const resultEl = document.getElementById('result');
-    const generationEl = document.getElementById('generation');
-
-    aEl.innerHTML = a;
-    bEl.innerHTML = b;
-    cEl.innerHTML = c;
-    dEl.innerHTML = d;
-    eEl.innerHTML = e;
-    f1El.innerHTML = f;
-    f2El.innerHTML = f;
-    resultEl.innerHTML = result;
-    generationEl.innerHTML = generation;
-}
-
-const equation = (a, b, c, d, e, f) => a**2 / b + c**2 - d*0.5 - e/f - f**2;
-const result = 5000;
-
-
-const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-const fitness = (genome) => {
-    const [a, b, c, d, e, f] = genome;
-    const score = Math.abs(equation(a, b, c, d, e, f) - result);
-
-    return score;
-}
-
-const crossover = (genomeA, genomeB) => {
-    const mid = Math.floor(genomeA.length / 2);
-
-    const child = [...genomeA.slice(0, mid), ...genomeB.slice(mid)];
-
-    return child;
-}
-
-const mutate = (genome) => {
-    const index = randomInt(0, genome.length - 1);
-    const delta = randomInt(-1, 1);
-    genome[index] += delta;
-
-    return genome;
-}
-
-const createInitialPopulation = (populationSize, genomeLength) => {
-    const population = [];
-
-    for (let i = 0; i < populationSize; i++) {
-        const genome = [];
-
-        for (let j = 0; j < genomeLength; j++) {
-            genome.push(randomInt(0, 30));
+class GA {
+    static pickRandomElements(arr, numElements) {
+        const shuffledArray = [...arr];
+      
+        // Fisher-Yates shuffle algorithm
+        for (let i = shuffledArray.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
         }
-
-        population.push(genome);
+      
+        return shuffledArray.slice(0, numElements);
     }
 
-    return population;
-}
-
-const selection = (population, surviveSize) => {
-    const sorted = population.sort((a, b) => fitness(a) - fitness(b));
-
-    return sorted.slice(0, surviveSize);
-}
-
-const reduction = (population, surviveSize) => {
-    population.splice(surviveSize, population.length);
-}
-
-
-const nextGeneration = (parents, mutationRate) => {
-    const newPopulation = [];
-
-    for (let j = 0; j < parents.length - 1; j++) {
-        const parentA = parents[j];
-        const parentB = parents[j + 1];
-
-        const child = crossover(parentA, parentB, parentA.length);
-
-        if (Math.random() < mutationRate) {
-            mutate(child);
+    constructor(
+        {
+            maxGenerations, 
+            populationSize, 
+            mutationRate, 
+            elite, 
+            bestSurvivePercent, 
+            genomeLength,
+            fitnessFunction,
+            randPopulationFunction,
+            randMutationFunction
         }
+    ) {
+        this.maxGenerations = maxGenerations;
+        this.populationSize = populationSize;
+        this.mutationRate = mutationRate;
+        this.elite = elite;
+        this.bestSurvivePercent = bestSurvivePercent;
+        this.genomeLength = genomeLength;
+        this.fitnessFunction = fitnessFunction;
+        this.randPopulationFunction = randPopulationFunction;
+        this.randMutationFunction = randMutationFunction;
 
-        newPopulation.push(child);
+        this.population = [];
+        this._terminate = false;
     }
 
-    return newPopulation;
-}
-
-let isRunning = false;
-
-const run = async (maxGenerations, populationSize, mutationRate, parentSurvivePercent) => {
-    let population = createInitialPopulation(populationSize, 6);
-    isRunning = true;
-
-    if (parentSurvivePercent < 0.5) {
-        throw new Error('parentSurvivePercent must be more than 0.5, becuse we return 2 children from 2 parents');
+    createInitialPopulation = () => {
+        this.population = [];
+    
+        for (let i = 0; i < this.populationSize; i++) {
+            const genome = [];
+    
+            for (let j = 0; j < this.genomeLength; j++) {
+                genome.push(
+                    this.randPopulationFunction()
+                );
+            }
+    
+            this.population.push(genome);
+        }
     }
 
-    for (let i = 0; i < maxGenerations; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 10));
-        // will remove worst 20% amount of parents
-
-        const parents = selection(population, population.length * parentSurvivePercent);
-        // will create children from 80% parents 
-        
-        const newGeneration = nextGeneration(parents, mutationRate)
-
-        population = [
-            ...parents, 
-            ...newGeneration
+    selection(bestSurvivePercent, populationSize) {
+        const sorted = this.population.sort((a, b) => this.fitnessFunction(a) - this.fitnessFunction(b));
+    
+        const bestParentSurviveSize = Math.floor(populationSize * bestSurvivePercent);
+        const badParentSurviveSize = populationSize - bestParentSurviveSize;
+    
+        const bestSurvive = sorted.slice(0, bestParentSurviveSize);
+        const restSurvive = sorted.slice(bestParentSurviveSize, this.population.length);
+    
+        const badSurvive = GA.pickRandomElements(restSurvive, badParentSurviveSize);
+    
+        this.population = [
+            ...bestSurvive,
+            ...badSurvive
         ];
+    }
 
-        // will remove keep same population size
-        reduction(population, populationSize);
+    crossover(genomeA, genomeB) {
+        const mid = Math.floor(this.genomeLength / 2);
+    
+        const child = [...genomeA.slice(0, mid), ...genomeB.slice(mid)];
+    
+        return child;
+    }
+    
+    mutate = (genome) => {
+        const index = Math.floor(Math.random() * genome.length);
+        const delta = this.randMutationFunction();
 
-        console.log(`Generation: ${i} | Fitness: ${fitness(parents[0])} result: ${equation(...population[0])}`);
+        genome[index] += delta;
+    }
 
-        updateView(...population[0], equation(...population[0]), i + 1);
+    addNewPopulation(mutRandMin, mutRandMax) {
+        const newPopulation = [];
 
-        if (fitness(population[0]) === 0) {
-            console.log(`Best genome: ${population[0]}`);
+        const parents = this.population;
+        const eliteSize = this.elite * this.population.length;
+    
+        for (let j = 0; j <= parents.length - 1; j++) {
+            const parentA = parents[j];
+            const parentB = parents[Math.floor(Math.random() * parents.length)];
 
-            break;
+            if (j < eliteSize) {
+                newPopulation.push(parentA);
+                continue;
+            }
+
+            const child = this.crossover(parentA, parentB);
+        
+            if (Math.random() < this.mutationRate) {
+                this.mutate(child, mutRandMin, mutRandMax);
+            }
+    
+            newPopulation.push(child);
+        }
+    
+        this.population.push(...newPopulation);
+    }
+
+    async run(delay=0, onGeneration=()=>{}) {
+        this.createInitialPopulation(); // think about genome length and fitness function
+
+        for (let i = 0; i < this.maxGenerations; i++) {   
+            if (this._terminate) {
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, delay));
+
+            // will create children from bestSurvivePercent% parents 
+            // dont mutate elite
+            this.addNewPopulation();
+    
+            this.selection(this.bestSurvivePercent, this.populationSize);
+    
+            onGeneration(i);
         }
     }
 
-    isRunning = false;
-}
-
-
-run(
-    maxGenerations = 1000,
-    populationSize = 200,
-    mutationRate = 0.3,
-    parentSurvivePercent = 0.6
-)
-
-if (typeof window !== 'undefined') {
-    document.getElementById('run').onclick = () => {
-
-        if (isRunning) {
-            return;
-        }
-
-        run(
-            maxGenerations = 1000,
-            populationSize = 100,
-            mutationRate = 0.3,
-            parentSurvivePercent = 0.6
-        )
+    terminate() {
+        this._terminate = true;
     }
 }
