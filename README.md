@@ -2,6 +2,19 @@
 
 https://rally08.github.io/genetic-algorithm/
 
-ga.js - Class for implementing genetic algorithms
-ga-eq.js - Selecting arguments for the given equation
-ga-sin.js - Removing noised sine wave
+This repository contains a set of JavaScript classes for implementing genetic algorithm.
+
+## Files
+
+### `ga.js`
+
+- Class for implementing genetic algorithms.
+
+### `ga-eq.js`
+
+- Class for selecting arguments for a given equation.
+
+### `ga-sin.js`
+
+- Class for removing noised sine waves.
+
