@@ -38,14 +38,25 @@ views.noisedSine.forEach((view, i) => {
     view.innerHTML = noiseSineParams[i].toFixed(3);
 })
 
+let prevBestGenome = null;
 
 const updateView = (amplitude, frequency, phase, bestFitness, generation) => {
     document.getElementById('generation').innerHTML = generation;
     document.getElementById('best-fitness').innerHTML = Number(bestFitness).toFixed(3);
+    const target = document.getElementsByClassName('target')[0];
+
+    if ( `${amplitude},${frequency},${phase}` !== prevBestGenome) {
+        target.classList.add('blink');
+        setTimeout(() => {
+            target.classList.remove('blink');
+        }, 100);
+    }
 
     views.targetSine.forEach((view, i) => {
         view.innerHTML = [amplitude.toFixed(3), frequency.toFixed(3), phase.toFixed(3)][i];
     })
+
+    prevBestGenome = `${amplitude},${frequency},${phase}`;
 }
 
 const mapRange = (toMin, toMax, fromMin, fromMax) => value => {
