@@ -1,7 +1,3 @@
-
-
-
-
 class GA {
     static pickRandomElements(arr, numElements) {
         const shuffledArray = [...arr];
