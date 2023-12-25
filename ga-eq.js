@@ -29,6 +29,7 @@ const result = 5000;
 
 const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
+// Fitness function is used to evaluate how close is genome to the result
 const fitness = (genome) => {
     const [a, b, c, d, e, f] = genome;
     const score = Math.abs(equation(a, b, c, d, e, f) - result);
@@ -44,6 +45,8 @@ const gaParams = {
     elite: 0,
     genomeLength: 6,
     fitnessFunction: fitness,
+
+    // Generate random integer to simplify equation
     randPopulationFunction: () => randomInt(0, 30),
     randMutationFunction: () => randomInt(-1, 1),
 }
