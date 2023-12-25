@@ -103,12 +103,16 @@ if (typeof window !== 'undefined') {
     const yBlackData = noisedDataY;
 
     // Declare the chart dimensions and margins.
-    const width = 1480;
-    const height = 500;
-    const marginTop = 60;
-    const marginRight = 20;
-    const marginBottom = 40;
-    const marginLeft = 160;
+    // const extraRightPanelMargin = Math.max(window.innerWidth, window.innerHeight) * 0.15; // 20% of widest dimension
+
+    const width = Math.max(window.innerWidth, window.innerHeight);
+    const height = Math.min(window.innerWidth, window.innerHeight);
+
+    const marginTop = height * 0.05;
+    const marginBottom = height * 0.05;
+    const marginLeft = width * 0.05;
+    const marginRight = width * 0.05;
+
 
     // Declare the x (horizontal position) scale.
     x = d3.scaleLinear()
@@ -169,7 +173,6 @@ if (typeof window !== 'undefined') {
             .attr("fill", "none")
             .attr("stroke", "black")
             .attr("stroke-width", 3)
-
 
     // Append the SVG element.
     container.append(
@@ -259,3 +262,4 @@ restart.onclick = () => {
     ga = new GA(gaParams);
     runGa();
 }
+

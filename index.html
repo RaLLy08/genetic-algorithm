@@ -9,33 +9,14 @@
     <script src="ga-sin.js" defer></script>
     <style type="text/css">
       body {
-        height: 100vh;
-        font-size: 4vw;
         padding: 0;
         margin: 0;
-      }
-      .sines {
-        display: inline-block;
-        position: relative;
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        border: 0;
-        overflow: hidden;
         font-family: monospace;
-        font-size: 0.3em;
-        text-align: center;
+        overflow: hidden;
       }
 
       .description {
-        font-size: 0.5em;
-        text-align: center;
-      }
-      
-      .labels {
-        font-size: 0.5em;
-        text-align: center; 
+        text-decoration: underline;
       }
 
       .original {
@@ -46,69 +27,102 @@
         color: blue;
       }
 
-      button {
-        font-size: 0.5em;
+      @media (max-aspect-ratio: 1/1) {
+        #container{
+          transform: rotate(90deg)
+        }
       }
 
-      label {
-        font-size: 0.4em;
+      #container {
+        position: relative;
       }
-      a {
-        font-size: 0.5em;
+      :root {
+        --fontsize:  calc(0.04 * 100vmin);
+      }
+
+      .infoPanel {
+        position: absolute;
+        top: calc(0.005 * 100vmin);
+        height: calc(0.1 * 100vmin);
+
+        left: calc(0.06 * 100vmax);
+        width: calc(0.9 * 100vmax);
+        padding: 6px;
+        display: flex;
+        font-size: var(--fontsize);
+        align-items: center;
+        gap: 10px;
+      }
+
+      .infoPanel button {
+        font-size: calc(var(--fontsize) * 0.8);
+        margin-right: 10px;
+      }
+
+      .sinesPanel {
+        margin-left: auto;
+        font-size: calc(var(--fontsize) * 0.6);
+      }
+
+      .link {
         position: fixed;
+        bottom: 4px;
+        right: 4px;
+        font-size: calc(var(--fontsize) * 0.9);
+        z-index: 10;
       }
     </style>
 </head>
 <body>
-<a href="ga-eq.html">#Genetic Algorithm Equation</a>
-<div class="description">
-  Removing Noised Signal using Genetic Algorithm
-</div>
-<div id="container"></div>
-<div style="text-align: center;">
- Generation: <span id="generation">0</span>  
-  <button id="restart">
-  Restart
-</button> 
-</div>
-<div style="text-align: center; font-size: 0.6em;">
-  Best Fitness (MSE): <span id="best-fitness">?</span>
-</div>
+<a class="link" href="ga-eq.html">#Genetic Algorithm: Equation arguments-></a>
+<div id="container">
+  <div class="infoPanel">
+    <button id="restart">
+      Restart
+    </button> 
+    <div>
+      <div style="text-align: start;">
+        Generation:<span id="generation">0</span>  
+      </div>
+      <div style="text-align: start;">
+         Best Fitness(MSE): <span id="best-fitness">?</span>
+      </div>
+    </div>
+    <div class="sinesPanel">
+      <div class="description">
+        Removing Noised Signal using Genetic Algorithm
+      </div>
+      <div class="labels">
+        <span class="noised">Original + Noise</span> - Denoised = <span class="original">Original</span>
+      </div>
 
-<div>
-  <div class="sines">
-      <span class="noised">
-        <span id="original-A">
-        </span>
-          * sin(
-            <span id="original-F">
+      <div class="sines">
+          <span class="noised">
+            <span id="original-A">
+            </span>
+              * sin(<span id="original-F">
+                </span>  
+                * t + <span id="original-P">
+                </span>) 
+          </span>
+    
+          <span class="noised">
+            + <span id="noised-A"> </span>
+           * sin(<span id="noised-F">
             </span>  
-            * t + <span id="original-P">
-            </span> 
-          ) 
-      </span>
-
-      <span class="noised">
-        + <span id="noised-A"> </span>
-       * sin(
-        <span id="noised-F">
-        </span>  
-        * t + <span id="noised-P">
-        </span>)
-      </span>
-
-        <span class="targed">
-          + <span id="target-A"> </span>
-          * sin(
-            <span id="target-F">
-            </span>  
-            * t + <span id="target-P">
+            * t + <span id="noised-P">
             </span>)
-        </span>
-
-  </div> 
-  <div class="labels">
-    <span class="noised"> Original + Noise</span> - Denoised = <span class="original">Original</span>
+          </span>
+            <span class="targed">
+              + <span id="target-A"> </span>
+              * sin(<span id="target-F">
+                </span>  
+                * t + <span id="target-P">
+                </span>)
+            </span>
+    
+      </div> 
+    </div>
   </div>
 </div>
 

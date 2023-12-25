@@ -114,7 +114,7 @@ class GA {
     }
 
     async run(delay=0, onGeneration=()=>{}) {
-        this.createInitialPopulation(); // think about genome length and fitness function
+        this.createInitialPopulation();
 
         for (let i = 0; i < this.maxGenerations; i++) {   
             if (this._terminate) {
@@ -124,7 +124,6 @@ class GA {
             await new Promise(resolve => setTimeout(resolve, delay));
 
             // will create children from bestSurvivePercent% parents 
-            // dont mutate elite
             this.addNewPopulation();
     
             this.selection(this.bestSurvivePercent, this.populationSize);
