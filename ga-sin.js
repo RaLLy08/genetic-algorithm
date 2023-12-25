@@ -119,8 +119,8 @@ if (typeof window !== 'undefined') {
     const width = Math.max(window.innerWidth, window.innerHeight);
     const height = Math.min(window.innerWidth, window.innerHeight);
 
-    const marginTop = height * 0.05;
-    const marginBottom = height * 0.05;
+    const marginTop = height * 0.20;
+    const marginBottom = height * 0.20;
     const marginLeft = width * 0.05;
     const marginRight = width * 0.05;
 
