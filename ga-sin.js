@@ -1,6 +1,6 @@
  // amplitude, frequency, phase
 
- const originalSineParameters = [
+const originalSineParameters = [
     0.5 + 2 * Math.random(), 
     10 * Math.random(),
     10 + Math.random() * 20
@@ -65,6 +65,7 @@ const mapRange = (toMin, toMax, fromMin, fromMax) => value => {
 
 const dataXLength = 500;
 
+// Returns sine function with given parameters
 const getSine = (t) => (amplitude, frequency, phase) => {
     return amplitude * Math.sin(
             mapRange(
@@ -76,7 +77,7 @@ const getSine = (t) => (amplitude, frequency, phase) => {
 const randFloat = (min, max) => {
     return Math.trunc((min + (Math.random() * (max - min)) ) * 10) / 10
 }
-
+// Returns original sine function for comparison
 const originalEquation = (t) => {
     const sine = getSine(t);
 
@@ -85,10 +86,10 @@ const originalEquation = (t) => {
 
 
 const dataX = Array.from({ length: dataXLength }, (_, i) => i);
-
+// Create sine data with noise
 const dataYWithoutNoise = dataX.map(originalEquation);
 
-
+// Adds sine to data
 const applySineToData = (params, data) => {
     const [amplitude, frequency, phase] = params;
 
@@ -192,6 +193,8 @@ if (typeof window !== 'undefined') {
 }
 
 // GA
+
+// Returns array of distances between original sine and passed one
 const getDistances = (yData) => {
     return yData.map((y1, i) => {
         const y2 = originalEquation(i);
@@ -200,6 +203,7 @@ const getDistances = (yData) => {
     })
 }
 
+// Returns mean square error for passed data
 const meanSquareError = (yData) => {
     const distances = getDistances(yData);
 
@@ -210,6 +214,7 @@ const meanSquareError = (yData) => {
     return sum / distances.length;
 }
 
+// Returns fitness of genome based on mean square error
 const fitness = (genome) => {
     const dataY = applySineToData(genome, noisedDataY)
 
@@ -231,7 +236,6 @@ const displayDenoisedSine = (bestGenome) => {
         ];
     });
 
-    // replace data in d3 graph
     optimumPath.data([xy])
         .attr("d", d3.line()
             .x((d) => x(d[0]))
