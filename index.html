@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Removing Noise</title>
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="ga.js" defer></script>
@@ -37,31 +38,30 @@
         position: relative;
       }
       :root {
-        --fontsize:  calc(0.04 * 100vmin);
+        --fontsize:  calc(0.03 * 100vmin);
       }
 
       .infoPanel {
         position: absolute;
         top: calc(0.005 * 100vmin);
-        height: calc(0.1 * 100vmin);
 
         left: calc(0.06 * 100vmax);
         width: calc(0.9 * 100vmax);
         padding: 6px;
         display: flex;
         font-size: var(--fontsize);
-        align-items: center;
         gap: 10px;
       }
 
       .infoPanel button {
         font-size: calc(var(--fontsize) * 0.8);
         margin-right: 10px;
+        height: calc(0.05 * 100vmin);
       }
 
       .sinesPanel {
         margin-left: auto;
-        font-size: calc(var(--fontsize) * 0.6);
+        font-size: calc(var(--fontsize) * 0.7);
       }
 
       .link {
