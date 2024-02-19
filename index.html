@@ -7,7 +7,8 @@
     <title>Removing Noise</title>
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="ga.js" defer></script>
-    <script src="ga-sin.js" defer></script>
+    <script src="de.js" defer></script>
+    <script src="de-sin.js" defer></script>
     <style type="text/css">
       body {
         padding: 0;
@@ -57,7 +58,7 @@
       .infoPanel button {
         font-size: calc(var(--fontsize) * 0.8);
         margin-right: 10px;
-        height: calc(0.05 * 100vmin);
+        height: calc(0.06 * 100vmin);
       }
 
       .sinesPanel {
@@ -79,6 +80,7 @@
         font-weight: bold;
       }
 
+
       #restart {
         align-self: center;
       }
@@ -89,7 +91,7 @@
 <div id="container">
   <div class="infoPanel">
     <button id="restart">
-      Restart
+      Restart DE
     </button> 
     <div>
       <div style="text-align: start;">
@@ -101,7 +103,7 @@
     </div>
     <div class="sinesPanel">
       <div class="description">
-        Removing Noised Signal using Genetic Algorithm
+        Removing Noised Signal using Differential Evolution Algorithm
       </div>
       <div class="labels">
         <span class="noised">Original + Noise</span> - Denoised = <span class="original">Original</span>

@@ -255,13 +255,15 @@ const gaParams = {
     fitnessFunction: fitness,
     randPopulationFunction: () => randFloat(-40, 40),
     randMutationFunction: () => randFloat(-5, 5),
+    CR: 0.7,
+    scalingFactor: 0.5
 }
 
-let ga = new GA(gaParams);
+let de = new DE(gaParams);
 
-const runGa = () => {
-    ga.run(0, (g) => {
-        const bestGenome = ga.population[0];
+const runDe = () => {
+    de.run(0, (g) => {
+        const bestGenome = de.population[0];
     
         displayDenoisedSine(bestGenome)
     
@@ -269,12 +271,12 @@ const runGa = () => {
     });
 }
 
-runGa();
+runDe();
 
 restart.onclick = () => { 
-    ga.terminate();
+    de.terminate();
 
-    ga = new GA(gaParams);
-    runGa();
+    de = new DE(gaParams);
+    runDe();
 }
 

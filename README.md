@@ -14,7 +14,7 @@ This repository contains a set of JavaScript classes for implementing genetic al
 
 - Class for selecting arguments for a given equation.
 
-### `ga-sin.js`
+### `de-sin.js`
 
-- Class for removing noised sine waves.
+- Class for removing noised sine waves by Differential Evolution Algorithm
 

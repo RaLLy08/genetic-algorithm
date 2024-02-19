@@ -49,9 +49,12 @@ const gaParams = {
     // Generate random integer to simplify equation
     randPopulationFunction: () => randomInt(0, 30),
     randMutationFunction: () => randomInt(-1, 1),
+    CR: 0.9,
+    scalingFactor: 1
 }
 
 let ga = new GA(gaParams);
+
 
 const runGa = () => {
     ga.run(10, (g) => {
